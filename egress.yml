@@ -26,6 +26,8 @@ spec:
      route:
      - destination:
         host: api.openweathermap.org
+        port: 
+           number: 80
        weight: 100
 
 ---
@@ -65,4 +67,3 @@ spec:
      protocol: HTTPS
      name: https
    resolution: DNS
-   location: MESH_EXTERNAL
