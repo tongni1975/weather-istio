@@ -35,6 +35,8 @@ spec:
      route:
      - destination:
         host: weather.default.svc.cluster.local
+        port: 
+            number: 8080
         subset: LeastConn
      rewrite:
         uri: /
@@ -44,6 +46,8 @@ spec:
      route:
      - destination:
         host: weather.default.svc.cluster.local
+        port: 
+            number: 8080
         subset: LeastConn
      rewrite:
         uri: " "

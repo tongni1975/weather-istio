@@ -1,56 +1,4 @@
 apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-
-metadata:
-   name: weather-egress
-
-spec:
-   hosts:
-   - api.openweathermap.org
-   gateways:
-   - mesh
-   - istio-egressgateway
-   http:
-   - match:
-     - gateways:
-       - mesh
-       port: 80
-     route:
-     - destination:
-        host: istio-egressgateway.istio-system.svc.cluster.local
-       weight: 100
-   - match:
-     - gateways:
-       - istio-egressgateway
-       port: 80
-     route:
-     - destination:
-        host: api.openweathermap.org
-        port: 
-           number: 80
-       weight: 100
-
----
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-
-metadata:
-   name: weather-egress
-
-spec:
-   selector:
-      istio: egressgateway
-   servers:
-   - port:
-      number: 80
-      protocol: HTTP
-      name: HTTP
-     hosts:
-     - api.openweathermap.org
-
----
-
-apiVersion: networking.istio.io/v1alpha3
 kind: ServiceEntry
 
 metadata:
@@ -67,3 +15,65 @@ spec:
      protocol: HTTPS
      name: https
    resolution: DNS
+   location: MESH_EXTERNAL
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+
+metadata:
+   name: weather-egress
+
+spec:
+   selector:
+      istio: egressgateway
+   servers:
+   - port:
+      number: 80
+      protocol: HTTP
+      name: http
+     hosts:
+     - api.openweathermap.org
+   - port:
+      number: 443
+      protocol: HTTPS
+      name: https
+     hosts:
+     - api.openweathermap.org
+     tls:
+        mode: SIMPLE
+        serverCertificate: /etc/certs/cert-chain.pem
+        privateKey: /etc/certs/key.pem
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+
+metadata:
+   name: weather-egress
+
+spec:
+   hosts:
+   - api.openweathermap.org
+   gateways:
+   - mesh
+   - weather-egress
+   http:
+   - match:
+     - gateways:
+       - mesh
+       port: 80
+     route:
+     - destination:
+        host: istio-egressgateway.istio-system.svc.cluster.local
+       weight: 100
+   - match:
+     - gateways:
+       - weather-egress
+       port: 80
+     route:
+     - destination:
+        host: api.openweathermap.org
+       weight: 100
